@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Black-Scholes Option Pricer (Python)</title>
+
+    <!-- Load Pyodide -->
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background: #f0f0f0;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 480px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.15);
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin: 6px 0 12px 0;
+            border-radius: 4px;
+            border: 1px solid #777;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background: #0074ff;
+            border: none;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #005ad1;
+        }
+        .result {
+            margin-top: 20px;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Black-Scholes Options Pricer (Python)</h1>
+
+<div class="container">
+    <label>Stock Price (S)</label>
+    <input id="S" type="number" step="0.01">
+
+    <label>Strike Price (K)</label>
+    <input id="K" type="number" step="0.01">
+
+    <label>Volatility (σ)</label>
+    <input id="sigma" type="number" step="0.01">
+
+    <label>Time to Maturity (T, years)</label>
+    <input id="T" type="number" step="0.01">
+
+    <label>Risk-Free Rate (r)</label>
+    <input id="r" type="number" step="0.01">
+
+    <button onclick="runPython()">Calculate Price</button>
+
+    <div class="result" id="output"></div>
+</div>
+
+
+<script>
+let pyodide = null;
+
+// Load Pyodide (Python runtime in browser)
+async function loadPyodideAndPackages() {
+    pyodide = await loadPyodide();
+}
+loadPyodideAndPackages();
+
+
+async function runPython() {
+    const S = document.getElementById("S").value;
+    const K = document.getElementById("K").value;
+    const sigma = document.getElementById("sigma").value;
+    const T = document.getElementById("T").value;
+    const r = document.getElementById("r").value;
+
+    const pythonCode = `
+import math
+
+def norm_cdf(x):
+    return (1 + math.erf(x / math.sqrt(2))) / 2
+
+S = float(${S})
+K = float(${K})
+sigma = float(${sigma})
+T = float(${T})
+r = float(${r})
+
+d1 = (math.log(S/K) + (r + 0.5*sigma**2) * T) / (sigma * math.sqrt(T))
+d2 = d1 - sigma * math.sqrt(T)
+
+call = S * norm_cdf(d1) - K * math.exp(-r*T) * norm_cdf(d2)
+put  = K * math.exp(-r*T) * norm_cdf(-d2) - S * norm_cdf(-d1)
+
+(call, put)
+`;
+
+    let result = await pyodide.runPythonAsync(pythonCode);
+    document.getElementById("output").innerHTML =
+        "Call Price: $" + result[0].toFixed(4) +
+        "<br>Put Price: $" + result[1].toFixed(4);
+}
+</script>
+
+</body>
+</html>
