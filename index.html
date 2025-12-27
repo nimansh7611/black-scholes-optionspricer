@@ -114,27 +114,22 @@
     <label>Risk-Free Rate (r, decimal)</label>
     <input id="r" type="number" step="0.0001">
 
-    <!-- Fetch real-time risk-free rate -->
-    <button onclick="fetchRiskFreeRate()">Fetch Current Risk-Free Rate</button>
-
     <button onclick="runPython()">Calculate Option Prices</button>
 
     <div class="result" id="output"></div>
 
     <div class="info-box">
         <h2>What Are Call and Put Options?</h2>
-        <p><b>Call Option:</b> Gives the right (not obligation) to buy a stock at a strike price before expiration. Call price increases if stock goes up.</p>
-        <p><b>Put Option:</b> Gives the right (not obligation) to sell a stock at a strike price before expiration. Put price increases if stock goes down.</p>
+        <p><b>Call Option:</b> Right (not obligation) to buy at strike price before expiration.</p>
+        <p><b>Put Option:</b> Right (not obligation) to sell at strike price before expiration.</p>
     </div>
 
     <div class="info-box">
         <h2>Privacy Disclaimer</h2>
-        <p>This website does <b>NOT store, save, or send</b> any of your inputs. All calculations happen locally in your browser using Python (Pyodide). Your data never leaves your device.</p>
+        <p>All calculations run locally in your browser using Python (Pyodide). No data is stored or transmitted.</p>
     </div>
 
 </div>
-
-<footer>Made with Python, JavaScript, and the Black-Scholes Model</footer>
 
 <script>
 let pyodide = null;
@@ -144,33 +139,6 @@ async function loadPyodideAndPackages() {
     pyodide = await loadPyodide();
 }
 loadPyodideAndPackages();
-
-// Fetch real-time risk-free rate from FRED API
-async function fetchRiskFreeRate() {
-    try {
-        const response = await fetch('https://api.stlouisfed.org/fred/series/observations?series_id=DGS10&api_key=c6c0f94ca672e92d9389bbea795d2676&file_type=json');
-        const data = await response.json();
-
-        const observations = data.observations;
-        let latest = null;
-        for(let i = observations.length-1; i >= 0; i--) {
-            if(observations[i].value !== ".") {
-                latest = parseFloat(observations[i].value)/100; // convert % to decimal
-                break;
-            }
-        }
-
-        if(latest !== null) {
-            document.getElementById("r").value = latest.toFixed(4);
-            alert("Risk-free rate updated to " + (latest*100).toFixed(2) + "% (10-year US Treasury)");
-        } else {
-            alert("Could not fetch the risk-free rate.");
-        }
-    } catch (error) {
-        console.error(error);
-        alert("Error fetching risk-free rate.");
-    }
-}
 
 // Run Black-Scholes in Python
 async function runPython() {
@@ -211,5 +179,3 @@ put  = K * math.exp(-r*T) * norm_cdf(-d2) - S * norm_cdf(-d1)
 </body>
 </html>
 
-</body>
-</html>
